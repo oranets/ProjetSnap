@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "641830252441",
+    "firebase_url": "https://projetsnap.firebaseio.com",
+    "project_id": "projetsnap",
+    "storage_bucket": "projetsnap.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:641830252441:android:0cd3abc298155465",
+        "android_client_info": {
+          "package_name": "com.projetsnap.orane.projetsnap"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "641830252441-arlubohnu392479o8do81fjvutf4i9am.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgWSt8jjeigTMiIcSIA-8QLIJFOAt2iVo"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
