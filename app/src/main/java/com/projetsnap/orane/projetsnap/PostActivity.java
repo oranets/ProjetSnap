@@ -15,7 +15,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -34,47 +33,31 @@ public class PostActivity extends AppCompatActivity {
 
     private ImageButton mSelectImage;
     private Button mAddLoc;
-    private EditText mViewLoc;
+    private TextView mViewLoc;
     private Button mSend;
     private Uri mImageUri=null;
 
     private static final int GALLERY_REQUEST=1;
     private StorageReference mStorage;
     private DatabaseReference mDB;
-    //private LocationManager lm;
-    private Location loc;
+    private LocationManager lm;
+    private Location location;
     private ProgressDialog mProgress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post);
-
-        LocationManager LM;
-        String context= Context.LOCATION_SERVICE;
-        LM=(LocationManager) getSystemService(context);
-        //lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         //location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        //location=new Location(LocationManager.NETWORK_PROVIDER);
-
-        Criteria crta=new Criteria();crta.setAccuracy(Criteria.ACCURACY_FINE);
-        crta.setAltitudeRequired(false);
-        crta.setBearingRequired(false);
-        crta.setCostAllowed(true);
-        crta.setPowerRequirement(Criteria.POWER_LOW);
-        String provider = LM.getBestProvider(crta, true);
-
-// String provider = LocationManager.GPS_PROVIDER;
-        loc = LM.getLastKnownLocation(provider);
-
-        LM.requestLocationUpdates(provider, 1000, 0, locationListener);
+        location=new Location(LocationManager.NETWORK_PROVIDER);
 
         mStorage= FirebaseStorage.getInstance().getReference();
         mDB= FirebaseDatabase.getInstance().getReference().child("Prjt_Snap");
 
         mSelectImage=(ImageButton) findViewById(R.id.imageButton);
         mAddLoc= (Button) findViewById(R.id.button_loc) ;
-        mViewLoc=(EditText) findViewById(R.id.loc_view);
+        mViewLoc=(TextView) findViewById(R.id.loc_view);
         mSend=(Button) findViewById(R.id.send_to_db);
         mProgress= new ProgressDialog(this);
 
@@ -90,8 +73,7 @@ public class PostActivity extends AppCompatActivity {
         mAddLoc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //afficherAdresse();
-                updateWithNewLocation(loc);
+                afficherAdresse();
 
         }});
 
@@ -103,67 +85,6 @@ public class PostActivity extends AppCompatActivity {
         });
     }
 
-    private final LocationListener locationListener = new LocationListener()
-    {
-
-        @Override
-        public void onLocationChanged(Location location) {
-            updateWithNewLocation(location);
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-            updateWithNewLocation(null);
-        }
-
-        @Override
-        public void onProviderEnabled(String provider) {
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-        }
-
-    };
-    private void updateWithNewLocation(Location location) {
-        String latLong;
-        TextView myLocation;
-        myLocation = (TextView) findViewById(R.id.loc_view);
-
-        String addressString = "no address found";
-
-        if(location!=null) {
-            double lat = location.getLatitude();
-            double lon = location.getLongitude();
-            latLong = "Lat:" + lat + "\nLong:" + lon;
-
-            double lattitude = location.getLatitude();
-            double longitude = location.getLongitude();
-
-            Geocoder gc = new Geocoder(this,Locale.getDefault());
-            try {
-                List <Address>addresses= gc.getFromLocation(lattitude, longitude, 1);
-                StringBuilder sb = new StringBuilder();
-                if(addresses.size()>0) {
-                    Address address = addresses.get(0);
-                    for(int i =0;i<4;i++){
-                        sb.append(address.getAddressLine(i)).append("\n");
-                        sb.append(address.getLocality()).append("\n");
-                        sb.append(address.getPostalCode()).append("\n");
-                        sb.append(address.getCountryName());
-                    }
-                    addressString = sb.toString();
-                }
-            } catch (Exception e) {}
-        } else {
-            latLong = " NO Location Found ";
-        }
-        myLocation.setText("your Current Position is :\n" +latLong + "\n " + addressString );
-    }
-private Location returnLoc(){
-    return 
-}
-/*
 
  private void afficherAdresse() {
         Geocoder geo = new Geocoder(PostActivity.this);
@@ -172,20 +93,19 @@ private Location returnLoc(){
                     location.getLongitude(),1);
             if(adresses != null && adresses.size() == 1){
                 Address adresse = adresses.get(0);
-                ((EditText)findViewById(R.id.loc_view)).setText(String.format("%s, %s %s",
+                ((TextView)findViewById(R.id.loc_view)).setText(String.format("%s, %s %s",
                         adresse.getAddressLine(0),
                         adresse.getPostalCode(),
                         adresse.getLocality()));
             }
             else {
-                ((EditText)findViewById(R.id.loc_view)).setText("Adresse introuvable");
+                ((TextView)findViewById(R.id.loc_view)).setText("Adresse introuvable");
             }
         } catch (IOException e) {
             e.printStackTrace();
-            ((EditText)findViewById(R.id.loc_view)).setText("L'adresse n'a pu être déterminée.");
+            ((TextView)findViewById(R.id.loc_view)).setText("L'adresse n'a pu être déterminée.");
         }
     }
-*/
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -195,7 +115,6 @@ private Location returnLoc(){
             mSelectImage.setImageURI(mImageUri);
         }
     }
-
 
     private void sendDB() {
         mProgress.setMessage("Sending to DB");

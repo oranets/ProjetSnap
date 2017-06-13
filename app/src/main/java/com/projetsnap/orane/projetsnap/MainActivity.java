@@ -60,6 +60,7 @@ private RecyclerView mSnapList;
         }
         public void setLoca(String loca){
             TextView post_loc=(TextView) mView.findViewById(R.id.post_loc);
+            post_loc.setText(loca);
         }
         public void setImage(Context ctx, String img){
             ImageView post_image=(ImageView) mView.findViewById(R.id.post_image);
