@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -31,6 +32,7 @@ public class PostActivity extends AppCompatActivity {
     private Button mAddLoc;
     private TextView mViewLoc;
     private Button mSend;
+    private EditText mTitle;
     private Uri mImageUri=null;
 
     double longitude, latitude;
@@ -60,6 +62,7 @@ public class PostActivity extends AppCompatActivity {
         mProgress= new ProgressDialog(this);
         mLat=(TextView) findViewById(R.id.Lat) ;
         mLong=(TextView) findViewById(R.id.Long) ;
+        mTitle= (EditText) findViewById(R.id.titre) ;
 
 
 
@@ -149,7 +152,8 @@ public class PostActivity extends AppCompatActivity {
     private void sendDB() {
         mProgress.setMessage("Sending to DB");
         mProgress.show();
-        String loc_val=mViewLoc.getText().toString().trim();
+        final String loc_val=mViewLoc.getText().toString().trim();
+        final String titre_val=mTitle.getText().toString().trim();
         if(!TextUtils.isEmpty(loc_val)&&mImageUri!=null){
             StorageReference filepath=mStorage.child("Snaps").child(mImageUri.getLastPathSegment());
             filepath.putFile(mImageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -157,7 +161,8 @@ public class PostActivity extends AppCompatActivity {
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     Uri downloadUrl=taskSnapshot.getDownloadUrl();
                     DatabaseReference newSnap=mDB.push();
-                    newSnap.child("loc").setValue(mViewLoc.toString());
+                    newSnap.child("loc").setValue(loc_val);
+                    newSnap.child("title").setValue(titre_val);
                     newSnap.child("image").setValue(downloadUrl.toString());
                     mProgress.dismiss();
                     startActivity(new Intent(PostActivity.this,MainActivity.class));
