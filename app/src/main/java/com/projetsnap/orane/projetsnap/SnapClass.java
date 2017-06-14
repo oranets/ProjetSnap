@@ -1,8 +1,10 @@
 package com.projetsnap.orane.projetsnap;
 
 
+
 public class SnapClass {
     private String image, loc;
+
     public SnapClass() {
     }
 
@@ -26,6 +28,8 @@ public class SnapClass {
     public void setLoc(String loc) {
         this.loc = loc;
     }
+
+
 
 
 }

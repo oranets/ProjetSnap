@@ -21,13 +21,25 @@ import android.widget.TextView;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+
 
 public class PostActivity extends AppCompatActivity {
 
@@ -44,9 +56,13 @@ public class PostActivity extends AppCompatActivity {
     private Location location;
     private ProgressDialog mProgress;
 
+    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    public static final String FCM_MESSAGE_URL = "https://fcm.googleapis.com/fcm/send";
+
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
+        FirebaseMessaging.getInstance().subscribeToTopic("photoAdded");
         setContentView(R.layout.activity_post);
         lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         //location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
@@ -135,6 +151,38 @@ public class PostActivity extends AppCompatActivity {
 
             });
         }
+
+    }
+
+    public String post(String url) {
+
+
+        OkHttpClient client = new OkHttpClient();
+        JSONObject json = new JSONObject();
+        JSONObject dataJson = new JSONObject();
+
+        try {
+            json.put("to", "/topics/photoadded");
+            dataJson.put("title", "Nouvelle photo");
+            dataJson.put("body", "une photo a été ajouté a la bibliotheque");
+            json.put("notification", dataJson);
+            RequestBody body = RequestBody.create(JSON, json.toString());
+            Request request = new Request.Builder()
+                    .header("Authorization", "key=AIzaSyAZfP2SU2HZn2dt_d5Y2Wl9NfxRv-JaYZE")
+                    .url(url)
+                    .post(body)
+                    .build();
+            Response response = client.newCall(request).execute();
+            return response.body().string();
+
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "";
 
     }
 
