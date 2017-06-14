@@ -2,15 +2,15 @@ package com.projetsnap.orane.projetsnap;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.location.Address;
-import android.location.Criteria;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.nfc.Tag;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
+
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -27,6 +27,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -51,18 +52,22 @@ public class PostActivity extends AppCompatActivity {
     private Button mSend;
     private Uri mImageUri=null;
 
+    double longitude, latitude;
+    TextView mLat, mLong;
+
     private static final int GALLERY_REQUEST=1;
     private StorageReference mStorage;
     private DatabaseReference mDB;
-    private LocationManager lm;
-    private Location location;
+    LocationManager locationManager;
     private ProgressDialog mProgress;
+
 
     private static final String TAG = "PostActivity";
 
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     public static final String FCM_MESSAGE_URL = " https://fcm.googleapis.com/fcm/send";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -72,9 +77,7 @@ public class PostActivity extends AppCompatActivity {
         Log.v(TAG, "subscribed= photoadded");
 
         setContentView(R.layout.activity_post);
-        lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        //location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        location=new Location(LocationManager.NETWORK_PROVIDER);
+        locationManager= (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 
         mStorage= FirebaseStorage.getInstance().getReference();
         mDB= FirebaseDatabase.getInstance().getReference().child("Prjt_Snap");
@@ -84,6 +87,9 @@ public class PostActivity extends AppCompatActivity {
         mViewLoc=(TextView) findViewById(R.id.loc_view);
         mSend=(Button) findViewById(R.id.send_to_db);
         mProgress= new ProgressDialog(this);
+        mLat=(TextView) findViewById(R.id.Lat) ;
+        mLong=(TextView) findViewById(R.id.Long) ;
+
 
 
         mSelectImage.setOnClickListener(new View.OnClickListener() {
@@ -97,7 +103,8 @@ public class PostActivity extends AppCompatActivity {
         mAddLoc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                afficherAdresse();
+                checkLocation();
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2 * 60 * 1000, 10, locationListenerGPS);
 
         }});
 
@@ -107,28 +114,7 @@ public class PostActivity extends AppCompatActivity {
                 sendDB();
             }
         });
-    }
 
-
- private void afficherAdresse() {
-        Geocoder geo = new Geocoder(PostActivity.this);
-        try {
-            List<Address> adresses = geo.getFromLocation(location.getLatitude(),
-                    location.getLongitude(),1);
-            if(adresses != null && adresses.size() == 1){
-                Address adresse = adresses.get(0);
-                ((TextView)findViewById(R.id.loc_view)).setText(String.format("%s, %s %s",
-                        adresse.getAddressLine(0),
-                        adresse.getPostalCode(),
-                        adresse.getLocality()));
-            }
-            else {
-                ((TextView)findViewById(R.id.loc_view)).setText("Adresse introuvable");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            ((TextView)findViewById(R.id.loc_view)).setText("L'adresse n'a pu être déterminée.");
-        }
     }
 
     @Override
@@ -139,6 +125,55 @@ public class PostActivity extends AppCompatActivity {
             mSelectImage.setImageURI(mImageUri);
         }
     }
+
+    private boolean checkLocation() {
+        if(!isLocationEnabled())
+            showAlert();
+        return isLocationEnabled();
+    }
+    private boolean isLocationEnabled() {
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
+    private void showAlert() {
+        final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle("Enable Location")
+                .setMessage("Your Locations Settings is set to 'Off'.\nPlease Enable Location to " +
+                        "use this app")
+                .setPositiveButton("Location Settings", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                        Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivity(myIntent);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                    }
+                });
+        dialog.show();
+    }
+
+    private final LocationListener locationListenerGPS= new LocationListener() {
+        public void onLocationChanged(Location location) {
+            longitude = location.getLongitude();
+            latitude = location.getLatitude();
+            mLat.setText(latitude+"");
+            mLong.setText(longitude+"");
+            mViewLoc.setText("Latitude: "+latitude+"\nLongitude: "+longitude);
+        }
+        @Override
+        public void onStatusChanged(String s, int i, Bundle bundle) {
+
+        }
+        @Override
+        public void onProviderEnabled(String s) {
+
+        }
+        @Override
+        public void onProviderDisabled(String s) {
+        }
+    };
 
     private void sendDB() {
         mProgress.setMessage("Sending to DB");
@@ -164,9 +199,11 @@ public class PostActivity extends AppCompatActivity {
                     }).start();
                     mProgress.dismiss();
                     startActivity(new Intent(PostActivity.this,MainActivity.class));
+
                 }
 
             });
+
         }
 
     }
