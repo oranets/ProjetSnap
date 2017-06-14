@@ -10,9 +10,11 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.nfc.Tag;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -56,13 +58,19 @@ public class PostActivity extends AppCompatActivity {
     private Location location;
     private ProgressDialog mProgress;
 
+    private static final String TAG = "PostActivity";
+
+
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    public static final String FCM_MESSAGE_URL = "https://fcm.googleapis.com/fcm/send";
+    public static final String FCM_MESSAGE_URL = " https://fcm.googleapis.com/fcm/send";
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-        FirebaseMessaging.getInstance().subscribeToTopic("photoAdded");
+
+        FirebaseMessaging.getInstance().subscribeToTopic("photoadded");
+        Log.v(TAG, "subscribed= photoadded");
+
         setContentView(R.layout.activity_post);
         lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         //location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
@@ -145,6 +153,15 @@ public class PostActivity extends AppCompatActivity {
                     DatabaseReference newSnap=mDB.push();
                     newSnap.child("loc").setValue(mViewLoc.toString());
                     newSnap.child("image").setValue(downloadUrl.toString());
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //Code exécuté dans le nouveau thread
+                            String retour = post(FCM_MESSAGE_URL);
+                            Log.v(TAG, "index=" + retour);
+                        }
+                    }).start();
                     mProgress.dismiss();
                     startActivity(new Intent(PostActivity.this,MainActivity.class));
                 }
@@ -168,7 +185,7 @@ public class PostActivity extends AppCompatActivity {
             json.put("notification", dataJson);
             RequestBody body = RequestBody.create(JSON, json.toString());
             Request request = new Request.Builder()
-                    .header("Authorization", "key=AIzaSyAZfP2SU2HZn2dt_d5Y2Wl9NfxRv-JaYZE")
+                    .header("Authorization", "key=AAAAlXAQb5k:APA91bHSuXbRLKtrRWpz7Xj82PkBMn9pNSBaLDN0Gys0X6V6QEtA9nKwpqPmvN67WIpIuXzLyedbrWNBxlBHLT5e9LgdH9AnNFjFL81t_kK6Xd7OXagXAkt0RfhcvxwpXS6XrCzA8_T8")
                     .url(url)
                     .post(body)
                     .build();
