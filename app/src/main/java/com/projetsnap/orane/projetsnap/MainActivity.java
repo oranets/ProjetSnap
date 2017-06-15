@@ -46,6 +46,7 @@ private RecyclerView mSnapList;
             protected void populateViewHolder(SnapViewHolder viewHolder, SnapClass model, int position) {
                 viewHolder.setLoca(model.getLoc());
                 viewHolder.setTitre(model.getTitle());
+                viewHolder.setDate(model.getDate());
                 viewHolder.setImage(getApplicationContext(),model.getImage());
 
             }
@@ -65,6 +66,9 @@ private RecyclerView mSnapList;
         }public void setTitre(String titre){
             TextView post_titre=(TextView) mView.findViewById(R.id.post_title);
             post_titre.setText(titre);
+        }public void setDate(String date){
+            TextView post_date=(TextView) mView.findViewById(R.id.post_date);
+            post_date.setText(date);
         }
         public void setImage(Context ctx, String img){
             ImageView post_image=(ImageView) mView.findViewById(R.id.post_image);

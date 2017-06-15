@@ -26,6 +26,9 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class PostActivity extends AppCompatActivity {
 
     private ImageButton mSelectImage;
@@ -33,9 +36,11 @@ public class PostActivity extends AppCompatActivity {
     private TextView mViewLoc;
     private Button mSend;
     private EditText mTitle;
+    private TextView mDate;
     private Uri mImageUri=null;
 
     double longitude, latitude;
+    String date;
     TextView mLat, mLong;
 
     private static final int GALLERY_REQUEST=1;
@@ -63,7 +68,9 @@ public class PostActivity extends AppCompatActivity {
         mLat=(TextView) findViewById(R.id.Lat) ;
         mLong=(TextView) findViewById(R.id.Long) ;
         mTitle= (EditText) findViewById(R.id.titre) ;
-
+        mDate=(TextView) findViewById(R.id.date_vue);
+        date = new SimpleDateFormat("dd/MM/yyyy").format(new Date());
+        mDate.setText(date);
 
 
         mSelectImage.setOnClickListener(new View.OnClickListener() {
@@ -130,11 +137,13 @@ public class PostActivity extends AppCompatActivity {
 
     private final LocationListener locationListenerGPS= new LocationListener() {
         public void onLocationChanged(Location location) {
+
             longitude = location.getLongitude();
             latitude = location.getLatitude();
             mLat.setText(latitude+"");
             mLong.setText(longitude+"");
             mViewLoc.setText("Latitude: "+latitude+"\nLongitude: "+longitude);
+            mProgress.dismiss();
         }
         @Override
         public void onStatusChanged(String s, int i, Bundle bundle) {
@@ -154,6 +163,7 @@ public class PostActivity extends AppCompatActivity {
         mProgress.show();
         final String loc_val=mViewLoc.getText().toString().trim();
         final String titre_val=mTitle.getText().toString().trim();
+        final String date_val=mDate.getText().toString().trim();
         if(!TextUtils.isEmpty(loc_val)&&mImageUri!=null){
             StorageReference filepath=mStorage.child("Snaps").child(mImageUri.getLastPathSegment());
             filepath.putFile(mImageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -164,6 +174,7 @@ public class PostActivity extends AppCompatActivity {
                     newSnap.child("loc").setValue(loc_val);
                     newSnap.child("title").setValue(titre_val);
                     newSnap.child("image").setValue(downloadUrl.toString());
+                    newSnap.child("date").setValue(date_val);
                     mProgress.dismiss();
                     startActivity(new Intent(PostActivity.this,MainActivity.class));
 

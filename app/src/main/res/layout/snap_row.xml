@@ -28,6 +28,14 @@
             android:textSize="18sp" />
 
         <TextView
+            android:id="@+id/post_date"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:text="Date goes here"
+            android:textSize="14sp" />
+
+        <TextView
             android:id="@+id/post_loc"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
