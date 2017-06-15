@@ -45,6 +45,7 @@ private RecyclerView mSnapList;
             @Override
             protected void populateViewHolder(SnapViewHolder viewHolder, SnapClass model, int position) {
                 viewHolder.setLoca(model.getLoc());
+                viewHolder.setTitre(model.getTitle());
                 viewHolder.setImage(getApplicationContext(),model.getImage());
 
             }
@@ -61,6 +62,9 @@ private RecyclerView mSnapList;
         public void setLoca(String loca){
             TextView post_loc=(TextView) mView.findViewById(R.id.post_loc);
             post_loc.setText(loca);
+        }public void setTitre(String titre){
+            TextView post_titre=(TextView) mView.findViewById(R.id.post_title);
+            post_titre.setText(titre);
         }
         public void setImage(Context ctx, String img){
             ImageView post_image=(ImageView) mView.findViewById(R.id.post_image);
@@ -72,9 +76,10 @@ private RecyclerView mSnapList;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
         getMenuInflater().inflate(R.menu.main_menu,menu);
+
         return super.onCreateOptionsMenu(menu);
+
     }
 
     @Override
@@ -82,6 +87,8 @@ private RecyclerView mSnapList;
         if(item.getItemId()== R.id.action_add){
             startActivity(new Intent(MainActivity.this, PostActivity.class));
 
+        } else if (item.getItemId()==R.id.action_settings){
+            System.exit(0);
         }
         return super.onOptionsItemSelected(item);
     }
