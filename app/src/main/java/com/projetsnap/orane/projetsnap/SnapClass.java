@@ -3,12 +3,7 @@ package com.projetsnap.orane.projetsnap;
 
 
 public class SnapClass {
-<<<<<<< HEAD
-    private String image, loc;
-
-=======
     private String image, loc, title;
->>>>>>> origin/master
     public SnapClass() {
     }
 
