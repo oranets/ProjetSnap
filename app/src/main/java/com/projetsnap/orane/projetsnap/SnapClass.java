@@ -1,6 +1,7 @@
 package com.projetsnap.orane.projetsnap;
 
 
+
 public class SnapClass {
     private String image, loc, title,date;
     public SnapClass() {
@@ -44,6 +45,8 @@ public class SnapClass {
     public void setDate(String date) {
         this.date = date;
     }
+
+
 
 
 }

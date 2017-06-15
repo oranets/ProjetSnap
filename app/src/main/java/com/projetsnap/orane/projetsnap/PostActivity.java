@@ -10,9 +10,11 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
+
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,12 +24,27 @@ import android.widget.TextView;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 
 public class PostActivity extends AppCompatActivity {
 
@@ -50,10 +67,20 @@ public class PostActivity extends AppCompatActivity {
     private ProgressDialog mProgress;
 
 
+    private static final String TAG = "PostActivity";
+
+
+    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    public static final String FCM_MESSAGE_URL = " https://fcm.googleapis.com/fcm/send";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
+
+        FirebaseMessaging.getInstance().subscribeToTopic("photoadded");
+        Log.v(TAG, "subscribed= photoadded");
+
         setContentView(R.layout.activity_post);
         locationManager= (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 
@@ -175,6 +202,16 @@ public class PostActivity extends AppCompatActivity {
                     newSnap.child("title").setValue(titre_val);
                     newSnap.child("image").setValue(downloadUrl.toString());
                     newSnap.child("date").setValue(date_val);
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //Code exécuté dans le nouveau thread
+                            String retour = post(FCM_MESSAGE_URL);
+                            Log.v(TAG, "index=" + retour);
+                        }
+                    }).start();
+
                     mProgress.dismiss();
                     startActivity(new Intent(PostActivity.this,MainActivity.class));
 
@@ -183,6 +220,38 @@ public class PostActivity extends AppCompatActivity {
             });
 
         }
+
+    }
+
+    public String post(String url) {
+
+
+        OkHttpClient client = new OkHttpClient();
+        JSONObject json = new JSONObject();
+        JSONObject dataJson = new JSONObject();
+
+        try {
+            json.put("to", "/topics/photoadded");
+            dataJson.put("title", "Nouvelle photo");
+            dataJson.put("body", "une photo a été ajouté a la bibliotheque");
+            json.put("notification", dataJson);
+            RequestBody body = RequestBody.create(JSON, json.toString());
+            Request request = new Request.Builder()
+                    .header("Authorization", "key=AAAAlXAQb5k:APA91bHSuXbRLKtrRWpz7Xj82PkBMn9pNSBaLDN0Gys0X6V6QEtA9nKwpqPmvN67WIpIuXzLyedbrWNBxlBHLT5e9LgdH9AnNFjFL81t_kK6Xd7OXagXAkt0RfhcvxwpXS6XrCzA8_T8")
+                    .url(url)
+                    .post(body)
+                    .build();
+            Response response = client.newCall(request).execute();
+            return response.body().string();
+
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "";
 
     }
 
